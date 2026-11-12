@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agustín Dasso — Ensayo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#ECE3CE;color:#24211C;font-family:'Source Serif 4',serif;}
+  .loading{max-width:660px;margin:120px auto;padding:0 28px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#55503F;text-align:center;}
+</style>
+</head>
+<body>
+<div id="app"><p class="loading">Cargando ensayo…</p></div>
+
+<script>
+(function(){
+  // Página individual de cada ensayo: toma el contenido de index.html,
+  // así que si se edita el artículo allá, se actualiza acá solo.
+  // Uso: articulo.html?a=adam-smith  (o ?a=ft01)
+  var SLUGS = {'adam-smith':'ft01','malvinas':'ft02','peron-milei':'ft03','discurso-del-papa':'ft04'};
+  var app = document.getElementById('app');
+  var param = new URLSearchParams(location.search).get('a') || '';
+  var ftId = SLUGS[param] || param;
+
+  function fail(){
+    app.innerHTML = '<p class="loading">No encontré ese ensayo. <a href="index.html">Ver todos los ensayos</a></p>';
+  }
+
+  fetch('index.html').then(function(r){ return r.text(); }).then(function(html){
+    var src = new DOMParser().parseFromString(html, 'text/html');
+    var ft = ftId ? src.getElementById(ftId) : null;
+    if(!ft || !ft.classList.contains('full-text')){ fail(); return; }
+
+    src.querySelectorAll('style').forEach(function(s){
+      document.head.appendChild(document.importNode(s, true));
+    });
+
+    var box = ft.parentElement;
+    var card = ft.closest('.file');
+    function pick(sel){ var n = box.querySelector(':scope > ' + sel); return n ? n.textContent : ''; }
+    var title = pick('.title');
+    var deck = pick('.deck');
+    var source = pick('.source-line');
+    var stampEl = card.querySelector('.stamp');
+    var stamp = stampEl ? stampEl.textContent : '';
+    var m = (card.getAttribute('style') || '').split('--file-accent:')[1];
+    var accent = m ? m.split(';')[0].trim() : '#1F3350';
+
+    document.title = title + ' — Agustín Dasso';
+    app.innerHTML = '';
+
+    var top = document.createElement('div');
+    top.className = 'masthead';
+    top.innerHTML =
+      '<div class="eyebrow"><span>Archivo personal</span><span>Buenos Aires, Argentina</span></div>' +
+      '<h1 class="name"><a href="index.html" style="color:inherit;text-decoration:none;">Agustín Dasso</a></h1>' +
+      '<nav class="index" style="margin-top:22px;"><a href="index.html">← Todos los ensayos</a><a href="#" id="copyLink">Copiar link</a></nav>';
+    app.appendChild(top);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'dossier';
+    var art = document.createElement('article');
+    art.className = 'file';
+    art.setAttribute('style', '--file-accent:' + accent + ';');
+    art.innerHTML =
+      '<div class="file-head"><div class="file-meta">Ensayo · Agustín Dasso</div><span class="stamp"></span></div>' +
+      '<h2 class="title"></h2><p class="deck"></p><div class="source-line"></div>';
+    art.querySelector('.stamp').textContent = stamp;
+    art.querySelector('.title').textContent = title;
+    art.querySelector('.deck').textContent = deck;
+    art.querySelector('.source-line').textContent = source;
+
+    var body = document.importNode(ft, true);
+    body.removeAttribute('id');
+    body.classList.add('open');
+    art.appendChild(body);
+    wrap.appendChild(art);
+    app.appendChild(wrap);
+
+    var c = document.getElementById('copyLink');
+    c.addEventListener('click', function(e){
+      e.preventDefault();
+      function ok(){ c.textContent = '¡Link copiado!'; setTimeout(function(){ c.textContent = 'Copiar link'; }, 1800); }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(location.href).then(ok, function(){ window.prompt('Copiá el link:', location.href); });
+      } else {
+        window.prompt('Copiá el link:', location.href);
+      }
+    });
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>
