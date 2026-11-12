@@ -586,6 +586,23 @@
       }
     });
   });
+
+  // --- Enlaces a la página individual de cada ensayo ---
+  // Cada ensayo se puede abrir solo, en una pestaña aparte, con su propio link
+  // (articulo.html?a=...). Para un ensayo nuevo se usa el id de su full-text.
+  (function(){
+    var SLUGS = {ft01:'adam-smith', ft02:'malvinas', ft03:'peron-milei', ft04:'discurso-del-papa'};
+    document.querySelectorAll('.toggle').forEach(function(btn){
+      var id = btn.dataset.target;
+      var a = document.createElement('a');
+      a.href = 'articulo.html?a=' + (SLUGS[id] || id);
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Abrir en pestaña aparte ↗';
+      a.style.cssText = 'display:inline-block;margin:24px 0 0 16px;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--file-accent);text-decoration:none;border-bottom:1px dotted currentColor;padding-bottom:2px;';
+      btn.insertAdjacentElement('afterend', a);
+    });
+  })();
 </script>
 
 </body>
